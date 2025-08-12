@@ -17,7 +17,7 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 222.2 47.4% 11.2%;
+    --primary: 221 83% 53%;
     --primary-foreground: 210 40% 98%;
 
     --secondary: 210 40% 96.1%;
@@ -37,6 +37,11 @@ All colors MUST be HSL.
     --ring: 222.2 84% 4.9%;
 
     --radius: 0.5rem;
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --primary-glow: 221 89% 60%;
+    --gradient-hero: radial-gradient(120% 90% at 10% 10%, hsl(var(--primary) / 0.18), transparent 40%);
+    --shadow-elegant: 0 12px 28px -10px hsl(var(--primary) / 0.35);
+    --shadow-glow: 0 0 40px hsl(var(--primary) / 0.25);
 
     --sidebar-background: 0 0% 98%;
 
@@ -65,8 +70,8 @@ All colors MUST be HSL.
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 210 40% 98%;
 
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
@@ -101,5 +106,22 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .hero-surface {
+    background: var(--gradient-hero);
+  }
+  .btn-hero {
+    background-image: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.85));
+    color: hsl(var(--primary-foreground));
+    border: 1px solid hsl(var(--ring) / 0.15);
+    box-shadow: var(--shadow-elegant);
+    transition: var(--transition-smooth);
+  }
+  .btn-hero:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 16px 40px -12px hsl(var(--primary) / 0.45);
   }
 }

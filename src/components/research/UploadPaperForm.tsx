@@ -5,11 +5,15 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import type { ResearchPaper } from "./ResearchCard";
+import { FileUpload } from "./FileUpload";
+import { useAuth } from "@/contexts/AuthContext";
 
 export type UploadPaperData = Omit<ResearchPaper, "id" | "owner"> & { owner?: string };
 
-export const UploadPaperForm = ({ onSubmit }: { onSubmit: (paper: ResearchPaper) => void }) => {
+export const UploadPaperForm = ({ onSubmit }: { onSubmit: (paper: Omit<ResearchPaper, 'id' | 'owner'>) => Promise<ResearchPaper | null> }) => {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [form, setForm] = useState<UploadPaperData>({
     paperNumber: "",
     title: "",
@@ -24,16 +28,39 @@ export const UploadPaperForm = ({ onSubmit }: { onSubmit: (paper: ResearchPaper)
     setForm((f) => ({ ...f, [field]: value }));
   };
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newPaper: ResearchPaper = {
-      id: crypto.randomUUID(),
-      owner: form.owner || "you",
-      ...form,
-    } as ResearchPaper;
-    onSubmit(newPaper);
-    toast({ title: "Paper uploaded", description: "Your research paper was added locally. Connect Supabase to persist it." });
-    setForm({ paperNumber: "", title: "", collaborators: [], date: new Date().toISOString().slice(0, 10), status: "in-review", keywords: [], pdfUrl: "" });
+    
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to upload papers.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    
+    try {
+      const result = await onSubmit(form);
+      
+      if (result) {
+        setForm({ 
+          paperNumber: "", 
+          title: "", 
+          collaborators: [], 
+          date: new Date().toISOString().slice(0, 10), 
+          status: "in-review", 
+          keywords: [], 
+          pdfUrl: "" 
+        });
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -77,13 +104,22 @@ export const UploadPaperForm = ({ onSubmit }: { onSubmit: (paper: ResearchPaper)
           <Input id="keywords" value={(form.keywords || []).join(", ")} onChange={(e) => handleChange("keywords", e.target.value.split(",").map(s => s.trim()).filter(Boolean))} />
         </div>
         <div>
-          <Label htmlFor="pdf">PDF URL (temporary)</Label>
-          <Input id="pdf" type="url" placeholder="Use a public link for now" value={form.pdfUrl} onChange={(e) => handleChange("pdfUrl", e.target.value)} />
+          <FileUpload 
+            onFileUpload={(url) => handleChange("pdfUrl", url)}
+            disabled={isSubmitting}
+          />
         </div>
       </div>
       <div className="flex justify-end">
-        <Button type="submit" variant="hero">Upload Paper</Button>
+        <Button type="submit" variant="hero" disabled={isSubmitting || !user}>
+          {isSubmitting ? "Uploading..." : "Upload Paper"}
+        </Button>
       </div>
+      {!user && (
+        <p className="text-sm text-muted-foreground text-center">
+          Please log in to upload papers.
+        </p>
+      )}
     </form>
   );
 };

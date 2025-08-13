@@ -5,37 +5,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ResearchCard, type ResearchPaper } from "@/components/research/ResearchCard";
 import { SearchAndFilters, type Filters } from "@/components/research/SearchAndFilters";
 import { UploadPaperForm } from "@/components/research/UploadPaperForm";
-
-const initialPapers: ResearchPaper[] = [
-  {
-    id: "1",
-    paperNumber: "TIET-2004-001",
-    title: "MY RESEARCH",
-    collaborators: ["Avi"],
-    date: "2004-06-01",
-    status: "published",
-    keywords: ["AI"],
-    pdfUrl: "https://arxiv.org/pdf/1706.03762.pdf",
-    owner: "avi",
-  },
-  {
-    id: "2",
-    paperNumber: "TIET-2004-002",
-    title: "My research",
-    collaborators: ["Avi"],
-    date: "2004-07-15",
-    status: "in-review",
-    keywords: ["AI"],
-    pdfUrl: "https://arxiv.org/pdf/1609.08144.pdf",
-    owner: "you",
-  },
-];
+import { useAuth } from "@/contexts/AuthContext";
+import { useResearchPapers } from "@/hooks/useResearchPapers";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Index = () => {
-  const [papers, setPapers] = useState<ResearchPaper[]>(initialPapers);
   const [filters, setFilters] = useState<Filters>({ query: "", status: "all", collaborator: "" });
   const [tab, setTab] = useState<string>("browse");
   const location = useLocation();
+  const { user } = useAuth();
+  const { papers, loading, createPaper } = useResearchPapers();
 
   useEffect(() => {
     document.title = "ThaparAcad Research Portal";
@@ -59,7 +38,7 @@ const Index = () => {
     });
   }, [papers, filters]);
 
-  const myPapers = useMemo(() => papers.filter((p) => p.owner === "you"), [papers]);
+  const myPapers = useMemo(() => papers.filter((p) => p.owner === user?.id), [papers, user]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -82,15 +61,33 @@ const Index = () => {
             </TabsList>
             <TabsContent value="browse" className="space-y-4 mt-4">
               <p className="text-sm text-muted-foreground">Found {filtered.length} papers</p>
-              {filtered.map((p) => (
-                <ResearchCard key={p.id} paper={p} />
-              ))}
+              {loading ? (
+                <div className="space-y-4">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <Skeleton key={i} className="h-32 w-full" />
+                  ))}
+                </div>
+              ) : filtered.length > 0 ? (
+                filtered.map((p) => (
+                  <ResearchCard key={p.id} paper={p} />
+                ))
+              ) : (
+                <p className="text-muted-foreground">No papers found matching your criteria.</p>
+              )}
             </TabsContent>
             <TabsContent value="upload" className="mt-4">
-              <UploadPaperForm onSubmit={(paper) => setPapers((arr) => [paper, ...arr])} />
+              <UploadPaperForm onSubmit={createPaper} />
             </TabsContent>
             <TabsContent value="my" className="space-y-4 mt-4">
-              {myPapers.length === 0 ? (
+              {!user ? (
+                <p className="text-muted-foreground">Please log in to view your papers.</p>
+              ) : loading ? (
+                <div className="space-y-4">
+                  {Array.from({ length: 2 }).map((_, i) => (
+                    <Skeleton key={i} className="h-32 w-full" />
+                  ))}
+                </div>
+              ) : myPapers.length === 0 ? (
                 <p className="text-muted-foreground">No papers yet. Upload your first paper.</p>
               ) : (
                 myPapers.map((p) => <ResearchCard key={p.id} paper={p} />)

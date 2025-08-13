@@ -1,19 +1,36 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Register = () => {
-  const { toast } = useToast();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const { signUp, user } = useAuth();
+  const navigate = useNavigate();
+
   useEffect(() => {
     document.title = "Register | ThaparAcad";
-  }, []);
+    if (user) {
+      navigate("/");
+    }
+  }, [user, navigate]);
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({ title: "Register stub", description: "Connect Supabase to enable secure sign up." });
+    setIsLoading(true);
+    
+    const { error } = await signUp(email, password, name);
+    
+    if (!error) {
+      // User will need to check email for confirmation
+    }
+    
+    setIsLoading(false);
   };
 
   return (
@@ -22,17 +39,36 @@ const Register = () => {
       <form onSubmit={onSubmit} className="space-y-4">
         <div>
           <Label htmlFor="name">Full Name</Label>
-          <Input id="name" required />
+          <Input 
+            id="name" 
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required 
+          />
         </div>
         <div>
           <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" required />
+          <Input 
+            id="email" 
+            type="email" 
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required 
+          />
         </div>
         <div>
           <Label htmlFor="password">Password</Label>
-          <Input id="password" type="password" required />
+          <Input 
+            id="password" 
+            type="password" 
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required 
+          />
         </div>
-        <Button type="submit" variant="hero" className="w-full">Register</Button>
+        <Button type="submit" variant="hero" className="w-full" disabled={isLoading}>
+          {isLoading ? "Creating account..." : "Register"}
+        </Button>
       </form>
       <p className="text-sm text-muted-foreground mt-4">
         Already have an account? <Link to="/login" className="text-primary">Login</Link>

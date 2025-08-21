@@ -7,12 +7,26 @@ import { useToast } from "@/hooks/use-toast";
 import type { ResearchPaper } from "./ResearchCard";
 import { FileUpload } from "./FileUpload";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCoAuthors } from "@/hooks/useCoAuthors";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export type UploadPaperData = Omit<ResearchPaper, "id" | "owner"> & { owner?: string };
 
-export const UploadPaperForm = ({ onSubmit }: { onSubmit: (paper: Omit<ResearchPaper, 'id' | 'owner'>) => Promise<ResearchPaper | null> }) => {
+const DEPARTMENTS = [
+  { value: 'csed', label: 'Computer Science & Engineering (CSED)' },
+  { value: 'eced', label: 'Electronics & Communication Engineering (ECED)' },
+  { value: 'mced', label: 'Mechanical Engineering (MCED)' },
+  { value: 'eid', label: 'Electrical & Instrumentation Engineering (EID)' },
+  { value: 'med', label: 'Metallurgical Engineering (MED)' },
+  { value: 'btd', label: 'Biotechnology (BTD)' },
+  { value: 'ees', label: 'Energy & Environmental Sciences (EES)' },
+  { value: 'ced', label: 'Civil Engineering (CED)' },
+];
+
+export const EnhancedUploadPaperForm = ({ onSubmit }: { onSubmit: (paper: Omit<ResearchPaper, 'id' | 'owner'>) => Promise<ResearchPaper | null> }) => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const { coAuthors, loading: coAuthorsLoading } = useCoAuthors();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [form, setForm] = useState<UploadPaperData>({
     paperNumber: "",
@@ -29,6 +43,15 @@ export const UploadPaperForm = ({ onSubmit }: { onSubmit: (paper: Omit<ResearchP
 
   const handleChange = (field: keyof UploadPaperData, value: any) => {
     setForm((f) => ({ ...f, [field]: value }));
+  };
+
+  const handleCoAuthorChange = (coAuthorId: string, checked: boolean) => {
+    const currentIds = form.coAuthorIds || [];
+    if (checked) {
+      handleChange("coAuthorIds", [...currentIds, coAuthorId]);
+    } else {
+      handleChange("coAuthorIds", currentIds.filter(id => id !== coAuthorId));
+    }
   };
 
   const submit = async (e: React.FormEvent) => {
@@ -70,25 +93,52 @@ export const UploadPaperForm = ({ onSubmit }: { onSubmit: (paper: Omit<ResearchP
   };
 
   return (
-    <form onSubmit={submit} className="space-y-4">
+    <form onSubmit={submit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Label htmlFor="paperNumber">Paper Number</Label>
           <Input id="paperNumber" value={form.paperNumber} onChange={(e) => handleChange("paperNumber", e.target.value)} required />
         </div>
         <div>
-          <Label htmlFor="date">Publish/Issue Date</Label>
-          <Input id="date" type="date" value={form.date} onChange={(e) => handleChange("date", e.target.value)} required />
+          <Label htmlFor="department">Department</Label>
+          <Select value={form.department || ""} onValueChange={(v) => handleChange("department", v || undefined)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select department" />
+            </SelectTrigger>
+            <SelectContent>
+              {DEPARTMENTS.map(dept => (
+                <SelectItem key={dept.value} value={dept.value}>{dept.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
+
       <div>
         <Label htmlFor="title">Title</Label>
         <Input id="title" value={form.title} onChange={(e) => handleChange("title", e.target.value)} required />
       </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="collab">Collaborators (comma separated)</Label>
-          <Input id="collab" value={form.collaborators.join(", ")} onChange={(e) => handleChange("collaborators", e.target.value.split(",").map(s => s.trim()).filter(Boolean))} />
+          <Label htmlFor="date">Upload Date</Label>
+          <Input id="date" type="date" value={form.date} onChange={(e) => handleChange("date", e.target.value)} required />
+        </div>
+        <div>
+          <Label htmlFor="publishDate">Publish Date (optional)</Label>
+          <Input id="publishDate" type="date" value={form.publishDate || ""} onChange={(e) => handleChange("publishDate", e.target.value || undefined)} />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="collab">Additional Collaborators (comma separated)</Label>
+          <Input 
+            id="collab" 
+            value={form.collaborators.join(", ")} 
+            onChange={(e) => handleChange("collaborators", e.target.value.split(",").map(s => s.trim()).filter(Boolean))}
+            placeholder="Enter external collaborators" 
+          />
         </div>
         <div>
           <Label>Status</Label>
@@ -104,6 +154,34 @@ export const UploadPaperForm = ({ onSubmit }: { onSubmit: (paper: Omit<ResearchP
           </Select>
         </div>
       </div>
+
+      <div>
+        <Label>Co-Authors from Thapar Institute</Label>
+        <div className="mt-2 space-y-2 max-h-40 overflow-y-auto border rounded-md p-3">
+          {coAuthorsLoading ? (
+            <p className="text-sm text-muted-foreground">Loading co-authors...</p>
+          ) : coAuthors.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No co-authors available.</p>
+          ) : (
+            coAuthors.map((coAuthor) => (
+              <div key={coAuthor.id} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`coauthor-${coAuthor.id}`}
+                  checked={(form.coAuthorIds || []).includes(coAuthor.id)}
+                  onCheckedChange={(checked) => handleCoAuthorChange(coAuthor.id, checked as boolean)}
+                />
+                <Label 
+                  htmlFor={`coauthor-${coAuthor.id}`} 
+                  className="text-sm font-normal cursor-pointer flex-1"
+                >
+                  {coAuthor.full_name} ({coAuthor.department.toUpperCase()}) - {coAuthor.email}
+                </Label>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Label htmlFor="keywords">Keywords (comma separated)</Label>
@@ -116,6 +194,7 @@ export const UploadPaperForm = ({ onSubmit }: { onSubmit: (paper: Omit<ResearchP
           />
         </div>
       </div>
+
       <div className="flex justify-end">
         <Button type="submit" variant="hero" disabled={isSubmitting || !user}>
           {isSubmitting ? "Uploading..." : "Upload Paper"}

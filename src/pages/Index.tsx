@@ -3,14 +3,24 @@ import { useLocation } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { ResearchCard, type ResearchPaper } from "@/components/research/ResearchCard";
-import { SearchAndFilters, type Filters } from "@/components/research/SearchAndFilters";
-import { UploadPaperForm } from "@/components/research/UploadPaperForm";
+import { EnhancedSearchAndFilters, type EnhancedFilters } from "@/components/research/EnhancedSearchAndFilters";
+import { EnhancedUploadPaperForm } from "@/components/research/EnhancedUploadPaperForm";
 import { useAuth } from "@/contexts/AuthContext";
 import { useResearchPapers } from "@/hooks/useResearchPapers";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const Index = () => {
-  const [filters, setFilters] = useState<Filters>({ query: "", status: "all", collaborator: "" });
+  const [filters, setFilters] = useState<EnhancedFilters>({ 
+    query: "", 
+    status: "all", 
+    collaborator: "", 
+    department: "all",
+    coAuthor: "",
+    uploadDateFrom: "",
+    uploadDateTo: "",
+    publishDateFrom: "",
+    publishDateTo: ""
+  });
   const [tab, setTab] = useState<string>("browse");
   const location = useLocation();
   const { user } = useAuth();
@@ -25,16 +35,42 @@ const Index = () => {
   const filtered = useMemo(() => {
     const q = filters.query.toLowerCase();
     return papers.filter((p) => {
+      // Search query match
       const matchQuery =
         !q ||
         p.title.toLowerCase().includes(q) ||
         p.keywords?.some((k) => k.toLowerCase().includes(q)) ||
-        p.collaborators.some((c) => c.toLowerCase().includes(q));
+        p.collaborators.some((c) => c.toLowerCase().includes(q)) ||
+        p.coAuthors?.some((ca) => ca.full_name.toLowerCase().includes(q));
+
+      // Status match
       const matchStatus = filters.status === "all" || p.status === filters.status;
+
+      // Department match
+      const matchDepartment = filters.department === "all" || p.department === filters.department;
+
+      // External collaborator match
       const matchCollab =
         !filters.collaborator ||
         p.collaborators.some((c) => c.toLowerCase().includes(filters.collaborator.toLowerCase()));
-      return matchQuery && matchStatus && matchCollab;
+
+      // Co-author match
+      const matchCoAuthor = 
+        !filters.coAuthor ||
+        p.coAuthors?.some((ca) => ca.id === filters.coAuthor);
+
+      // Upload date range match
+      const uploadDate = new Date(p.date);
+      const matchUploadDateFrom = !filters.uploadDateFrom || uploadDate >= new Date(filters.uploadDateFrom);
+      const matchUploadDateTo = !filters.uploadDateTo || uploadDate <= new Date(filters.uploadDateTo);
+
+      // Publish date range match
+      const publishDate = p.publishDate ? new Date(p.publishDate) : null;
+      const matchPublishDateFrom = !filters.publishDateFrom || (publishDate && publishDate >= new Date(filters.publishDateFrom));
+      const matchPublishDateTo = !filters.publishDateTo || (publishDate && publishDate <= new Date(filters.publishDateTo));
+
+      return matchQuery && matchStatus && matchDepartment && matchCollab && matchCoAuthor && 
+             matchUploadDateFrom && matchUploadDateTo && matchPublishDateFrom && matchPublishDateTo;
     });
   }, [papers, filters]);
 
@@ -46,11 +82,11 @@ const Index = () => {
         <section className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Research Portal</h1>
           <p className="text-muted-foreground mb-6">Browse research, upload new papers, and manage your work.</p>
-          <Card className="hero-surface">
-            <CardContent className="p-6">
-              <SearchAndFilters value={filters} onChange={setFilters} />
-            </CardContent>
-          </Card>
+            <Card className="hero-surface">
+              <CardContent className="p-6">
+                <EnhancedSearchAndFilters value={filters} onChange={setFilters} />
+              </CardContent>
+            </Card>
         </section>
         <section>
           <Tabs value={tab} onValueChange={setTab}>
@@ -76,7 +112,7 @@ const Index = () => {
               )}
             </TabsContent>
             <TabsContent value="upload" className="mt-4">
-              <UploadPaperForm onSubmit={createPaper} />
+              <EnhancedUploadPaperForm onSubmit={createPaper} />
             </TabsContent>
             <TabsContent value="my" className="space-y-4 mt-4">
               {!user ? (

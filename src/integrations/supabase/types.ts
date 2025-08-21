@@ -14,10 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      co_authors: {
+        Row: {
+          created_at: string | null
+          department: Database["public"]["Enums"]["department_type"] | null
+          email: string
+          full_name: string
+          id: string
+          is_active: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          department?: Database["public"]["Enums"]["department_type"] | null
+          email: string
+          full_name: string
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          department?: Database["public"]["Enums"]["department_type"] | null
+          email?: string
+          full_name?: string
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       research_papers: {
         Row: {
+          co_author_ids: string[] | null
           collaborators: string[]
           created_at: string
+          department: Database["public"]["Enums"]["department_type"] | null
           id: string
           issue_date: string
           keywords: string[]
@@ -25,13 +57,16 @@ export type Database = {
           paper_number: string
           pdf_path: string | null
           pdf_url: string | null
+          publish_date: string | null
           status: Database["public"]["Enums"]["paper_status_type"]
           title: string
           updated_at: string
         }
         Insert: {
+          co_author_ids?: string[] | null
           collaborators?: string[]
           created_at?: string
+          department?: Database["public"]["Enums"]["department_type"] | null
           id?: string
           issue_date: string
           keywords?: string[]
@@ -39,13 +74,16 @@ export type Database = {
           paper_number: string
           pdf_path?: string | null
           pdf_url?: string | null
+          publish_date?: string | null
           status?: Database["public"]["Enums"]["paper_status_type"]
           title: string
           updated_at?: string
         }
         Update: {
+          co_author_ids?: string[] | null
           collaborators?: string[]
           created_at?: string
+          department?: Database["public"]["Enums"]["department_type"] | null
           id?: string
           issue_date?: string
           keywords?: string[]
@@ -53,6 +91,7 @@ export type Database = {
           paper_number?: string
           pdf_path?: string | null
           pdf_url?: string | null
+          publish_date?: string | null
           status?: Database["public"]["Enums"]["paper_status_type"]
           title?: string
           updated_at?: string
@@ -77,6 +116,36 @@ export type Database = {
         }
         Relationships: []
       }
+      users: {
+        Row: {
+          auth_user_id: string | null
+          created_at: string | null
+          department: Database["public"]["Enums"]["department_type"] | null
+          email: string
+          full_name: string
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          auth_user_id?: string | null
+          created_at?: string | null
+          department?: Database["public"]["Enums"]["department_type"] | null
+          email: string
+          full_name: string
+          id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          auth_user_id?: string | null
+          created_at?: string | null
+          department?: Database["public"]["Enums"]["department_type"] | null
+          email?: string
+          full_name?: string
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -92,6 +161,15 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
+      department_type:
+        | "csed"
+        | "eced"
+        | "mced"
+        | "eid"
+        | "med"
+        | "btd"
+        | "ees"
+        | "ced"
       paper_status_type: "published" | "in-review" | "draft"
     }
     CompositeTypes: {
@@ -221,6 +299,16 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
+      department_type: [
+        "csed",
+        "eced",
+        "mced",
+        "eid",
+        "med",
+        "btd",
+        "ees",
+        "ced",
+      ],
       paper_status_type: ["published", "in-review", "draft"],
     },
   },

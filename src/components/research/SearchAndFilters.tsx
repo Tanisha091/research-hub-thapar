@@ -6,6 +6,12 @@ export type Filters = {
   query: string;
   status: "all" | "published" | "in-review" | "draft";
   collaborator: string;
+  department: string;
+  coAuthor: string;
+  uploadDateFrom: string;
+  uploadDateTo: string;
+  publishDateFrom: string;
+  publishDateTo: string;
 };
 
 export const SearchAndFilters = ({ value, onChange }: { value: Filters; onChange: (f: Filters) => void }) => {

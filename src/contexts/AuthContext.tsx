@@ -32,6 +32,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
+  console.log('AuthProvider - User:', user);
+  console.log('AuthProvider - Loading:', loading);
+
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(

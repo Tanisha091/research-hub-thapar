@@ -16,6 +16,7 @@ export const useCoAuthors = () => {
   const { toast } = useToast();
 
   const fetchCoAuthors = async () => {
+    console.log('Fetching co-authors...');
     try {
       const { data, error } = await supabase
         .from('co_authors')
@@ -23,9 +24,13 @@ export const useCoAuthors = () => {
         .eq('is_active', true)
         .order('full_name');
 
+      console.log('Co-authors data:', data);
+      console.log('Co-authors error:', error);
+
       if (error) throw error;
       setCoAuthors(data || []);
     } catch (error: any) {
+      console.error('Co-authors fetch error:', error);
       toast({
         title: "Failed to load co-authors",
         description: error.message,

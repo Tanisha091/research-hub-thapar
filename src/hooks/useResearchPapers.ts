@@ -50,12 +50,16 @@ export const useResearchPapers = () => {
   });
 
   const fetchPapers = async () => {
+    console.log('Fetching papers...');
     setLoading(true);
     try {
       const { data, error } = await supabase
         .from('research_papers')
         .select('*')
         .order('created_at', { ascending: false });
+
+      console.log('Papers data:', data);
+      console.log('Papers error:', error);
 
       if (error) throw error;
 
@@ -81,8 +85,10 @@ export const useResearchPapers = () => {
       );
 
       const transformedPapers = papersWithCoAuthors.map(transformPaper);
+      console.log('Transformed papers:', transformedPapers);
       setPapers(transformedPapers);
     } catch (error: any) {
+      console.error('Papers fetch error:', error);
       toast({
         title: "Failed to load papers",
         description: error.message,

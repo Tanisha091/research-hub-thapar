@@ -65,11 +65,13 @@ export const ResearchCard = ({ paper }: Props) => {
         </Badge>
       </CardHeader>
       <CardContent className="flex items-center justify-between">
-        <div className="text-sm text-muted-foreground">
+        <div className="flex flex-wrap gap-1">
           {paper.keywords && paper.keywords.length > 0 && (
-            <p>
-              Keywords: {paper.keywords.join(", ")}
-            </p>
+            paper.keywords.map((keyword, index) => (
+              <Badge key={index} variant="outline" className="text-xs">
+                {keyword}
+              </Badge>
+            ))
           )}
         </div>
         {paper.pdfUrl && (

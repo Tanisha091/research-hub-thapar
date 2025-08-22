@@ -98,7 +98,7 @@ export const EnhancedUploadPaperForm = ({ onSubmit }: { onSubmit: (paper: Omit<R
           <Label htmlFor="department">Department</Label>
           <Select value={form.department || ""} onValueChange={(v) => handleChange("department", v || undefined)}>
             <SelectTrigger>
-              <SelectValue placeholder="Select department" />
+              <SelectValue placeholder="No department selected" />
             </SelectTrigger>
             <SelectContent>
               {DEPARTMENTS.map(dept => (
@@ -159,7 +159,7 @@ export const EnhancedUploadPaperForm = ({ onSubmit }: { onSubmit: (paper: Omit<R
           }))}
           selected={form.coAuthorIds || []}
           onChange={handleCoAuthorChange}
-          placeholder="Select co-authors..."
+          placeholder="No co-authors selected"
           disabled={coAuthorsLoading}
         />
       </div>

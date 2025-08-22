@@ -53,9 +53,11 @@ export const useResearchPapers = () => {
     console.log('Fetching papers...');
     setLoading(true);
     try {
+      // Fetch papers where user is owner OR co-author
       const { data, error } = await supabase
         .from('research_papers')
         .select('*')
+        .or(`owner.eq.${user?.id || 'null'},co_author_ids.cs.{${user?.id || 'null'}}`)
         .order('created_at', { ascending: false });
 
       console.log('Papers data:', data);

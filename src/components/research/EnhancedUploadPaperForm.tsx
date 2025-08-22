@@ -8,6 +8,7 @@ import type { ResearchPaper } from "./ResearchCard";
 import { FileUpload } from "./FileUpload";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCoAuthors } from "@/hooks/useCoAuthors";
+import { MultiSelect } from "@/components/ui/multi-select";
 
 export type UploadPaperData = Omit<ResearchPaper, "id" | "owner"> & { owner?: string };
 
@@ -44,12 +45,8 @@ export const EnhancedUploadPaperForm = ({ onSubmit }: { onSubmit: (paper: Omit<R
     setForm((f) => ({ ...f, [field]: value }));
   };
 
-  const handleCoAuthorChange = (coAuthorId: string) => {
-    if (coAuthorId === "none") {
-      handleChange("coAuthorIds", []);
-    } else {
-      handleChange("coAuthorIds", [coAuthorId]);
-    }
+  const handleCoAuthorChange = (coAuthorIds: string[]) => {
+    handleChange("coAuthorIds", coAuthorIds);
   };
 
   const submit = async (e: React.FormEvent) => {
@@ -154,24 +151,17 @@ export const EnhancedUploadPaperForm = ({ onSubmit }: { onSubmit: (paper: Omit<R
       </div>
 
       <div>
-        <Label>Co-Author from Thapar Institute</Label>
-        <Select 
-          value={(form.coAuthorIds && form.coAuthorIds[0]) || "none"} 
-          onValueChange={handleCoAuthorChange}
+        <Label>Co-Authors from Thapar Institute</Label>
+        <MultiSelect
+          options={coAuthors.map(coAuthor => ({
+            value: coAuthor.id,
+            label: `${coAuthor.full_name} (${coAuthor.department.toUpperCase()})`
+          }))}
+          selected={form.coAuthorIds || []}
+          onChange={handleCoAuthorChange}
+          placeholder="Select co-authors..."
           disabled={coAuthorsLoading}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select co-author" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="none">No Co-Author</SelectItem>
-            {coAuthors.map((coAuthor) => (
-              <SelectItem key={coAuthor.id} value={coAuthor.id}>
-                {coAuthor.full_name} ({coAuthor.department.toUpperCase()})
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

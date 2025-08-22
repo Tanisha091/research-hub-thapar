@@ -8,7 +8,6 @@ import type { ResearchPaper } from "./ResearchCard";
 import { FileUpload } from "./FileUpload";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCoAuthors } from "@/hooks/useCoAuthors";
-import { Checkbox } from "@/components/ui/checkbox";
 
 export type UploadPaperData = Omit<ResearchPaper, "id" | "owner"> & { owner?: string };
 
@@ -45,12 +44,11 @@ export const EnhancedUploadPaperForm = ({ onSubmit }: { onSubmit: (paper: Omit<R
     setForm((f) => ({ ...f, [field]: value }));
   };
 
-  const handleCoAuthorChange = (coAuthorId: string, checked: boolean) => {
-    const currentIds = form.coAuthorIds || [];
-    if (checked) {
-      handleChange("coAuthorIds", [...currentIds, coAuthorId]);
+  const handleCoAuthorChange = (coAuthorId: string) => {
+    if (coAuthorId === "none") {
+      handleChange("coAuthorIds", []);
     } else {
-      handleChange("coAuthorIds", currentIds.filter(id => id !== coAuthorId));
+      handleChange("coAuthorIds", [coAuthorId]);
     }
   };
 
@@ -156,30 +154,24 @@ export const EnhancedUploadPaperForm = ({ onSubmit }: { onSubmit: (paper: Omit<R
       </div>
 
       <div>
-        <Label>Co-Authors from Thapar Institute</Label>
-        <div className="mt-2 space-y-2 max-h-40 overflow-y-auto border rounded-md p-3">
-          {coAuthorsLoading ? (
-            <p className="text-sm text-muted-foreground">Loading co-authors...</p>
-          ) : coAuthors.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No co-authors available.</p>
-          ) : (
-            coAuthors.map((coAuthor) => (
-              <div key={coAuthor.id} className="flex items-center space-x-2">
-                <Checkbox
-                  id={`coauthor-${coAuthor.id}`}
-                  checked={(form.coAuthorIds || []).includes(coAuthor.id)}
-                  onCheckedChange={(checked) => handleCoAuthorChange(coAuthor.id, checked as boolean)}
-                />
-                <Label 
-                  htmlFor={`coauthor-${coAuthor.id}`} 
-                  className="text-sm font-normal cursor-pointer flex-1"
-                >
-                  {coAuthor.full_name} ({coAuthor.department.toUpperCase()}) - {coAuthor.email}
-                </Label>
-              </div>
-            ))
-          )}
-        </div>
+        <Label>Co-Author from Thapar Institute</Label>
+        <Select 
+          value={(form.coAuthorIds && form.coAuthorIds[0]) || "none"} 
+          onValueChange={handleCoAuthorChange}
+          disabled={coAuthorsLoading}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select co-author" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">No Co-Author</SelectItem>
+            {coAuthors.map((coAuthor) => (
+              <SelectItem key={coAuthor.id} value={coAuthor.id}>
+                {coAuthor.full_name} ({coAuthor.department.toUpperCase()})
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

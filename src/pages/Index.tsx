@@ -55,7 +55,7 @@ const Index = () => {
       const matchDept = filters.department === "all" || p.department === filters.department;
 
       // Co-author match
-      const matchCoAuthor = !filters.coAuthor || p.coAuthorIds?.includes(filters.coAuthor);
+      const matchCoAuthor = !filters.coAuthor || filters.coAuthor === "all" || p.coAuthorIds?.includes(filters.coAuthor);
 
       // Upload date range match
       const matchUploadDate = (!filters.uploadDateFrom || p.date >= filters.uploadDateFrom) &&

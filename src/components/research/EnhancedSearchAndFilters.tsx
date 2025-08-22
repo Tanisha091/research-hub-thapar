@@ -79,7 +79,7 @@ export const EnhancedSearchAndFilters = ({ value, onChange }: { value: EnhancedF
               <SelectValue placeholder="All Co-Authors" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Co-Authors</SelectItem>
+              <SelectItem value="all">All Co-Authors</SelectItem>
               {!loading && coAuthors.map(coAuthor => (
                 <SelectItem key={coAuthor.id} value={coAuthor.id}>
                   {coAuthor.full_name} ({coAuthor.department.toUpperCase()})

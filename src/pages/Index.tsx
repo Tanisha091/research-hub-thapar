@@ -3,18 +3,18 @@ import { useLocation } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { ResearchCard, type ResearchPaper } from "@/components/research/ResearchCard";
-import { SearchAndFilters, type Filters } from "@/components/research/SearchAndFilters";
-import { UploadPaperForm } from "@/components/research/UploadPaperForm";
+import { EnhancedSearchAndFilters, type EnhancedFilters } from "@/components/research/EnhancedSearchAndFilters";
+import { EnhancedUploadPaperForm } from "@/components/research/EnhancedUploadPaperForm";
 import { useAuth } from "@/contexts/AuthContext";
 import { useResearchPapers } from "@/hooks/useResearchPapers";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const Index = () => {
-  const [filters, setFilters] = useState<Filters>({ 
+  const [filters, setFilters] = useState<EnhancedFilters>({ 
     query: "", 
     status: "all", 
     collaborator: "", 
-    department: "",
+    department: "all",
     coAuthor: "",
     uploadDateFrom: "",
     uploadDateTo: "",
@@ -51,7 +51,21 @@ const Index = () => {
         !filters.collaborator ||
         p.collaborators.some((c) => c.toLowerCase().includes(filters.collaborator.toLowerCase()));
 
-      return matchQuery && matchStatus && matchCollab;
+      // Department match
+      const matchDept = filters.department === "all" || p.department === filters.department;
+
+      // Co-author match
+      const matchCoAuthor = !filters.coAuthor || p.coAuthorIds?.includes(filters.coAuthor);
+
+      // Upload date range match
+      const matchUploadDate = (!filters.uploadDateFrom || p.date >= filters.uploadDateFrom) &&
+                             (!filters.uploadDateTo || p.date <= filters.uploadDateTo);
+
+      // Publish date range match
+      const matchPublishDate = (!filters.publishDateFrom || (p.publishDate && p.publishDate >= filters.publishDateFrom)) &&
+                              (!filters.publishDateTo || (p.publishDate && p.publishDate <= filters.publishDateTo));
+
+      return matchQuery && matchStatus && matchCollab && matchDept && matchCoAuthor && matchUploadDate && matchPublishDate;
     });
   }, [papers, filters]);
 
@@ -65,7 +79,7 @@ const Index = () => {
           <p className="text-muted-foreground mb-6">Browse research, upload new papers, and manage your work.</p>
           <Card className="hero-surface">
             <CardContent className="p-6">
-              <SearchAndFilters value={filters} onChange={setFilters} />
+              <EnhancedSearchAndFilters value={filters} onChange={setFilters} />
             </CardContent>
           </Card>
         </section>
@@ -93,7 +107,7 @@ const Index = () => {
               )}
             </TabsContent>
             <TabsContent value="upload" className="mt-4">
-              <UploadPaperForm onSubmit={createPaper} />
+              <EnhancedUploadPaperForm onSubmit={createPaper} />
             </TabsContent>
             <TabsContent value="my" className="space-y-4 mt-4">
               {!user ? (

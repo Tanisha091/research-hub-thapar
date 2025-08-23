@@ -53,19 +53,21 @@ export const useResearchPapers = () => {
     console.log('Fetching papers...');
     setLoading(true);
     
-    if (!user?.id) {
-      console.log('No user ID, skipping fetch');
-      setLoading(false);
-      return;
-    }
-    
     try {
-      // Fetch papers where user is owner OR co-author
-      const { data, error } = await supabase
+      let query = supabase
         .from('research_papers')
         .select('*')
-        .or(`owner.eq.${user.id},co_author_ids.cs.{${user.id}}`)
         .order('created_at', { ascending: false });
+
+      if (user?.id) {
+        // If logged in, fetch papers where user is owner OR co-author OR published papers
+        query = query.or(`owner.eq.${user.id},co_author_ids.cs.{${user.id}},status.eq.published`);
+      } else {
+        // If not logged in, only fetch published papers
+        query = query.eq('status', 'published');
+      }
+
+      const { data, error } = await query;
 
       console.log('Papers data:', data);
       console.log('Papers error:', error);

@@ -52,12 +52,19 @@ export const useResearchPapers = () => {
   const fetchPapers = async () => {
     console.log('Fetching papers...');
     setLoading(true);
+    
+    if (!user?.id) {
+      console.log('No user ID, skipping fetch');
+      setLoading(false);
+      return;
+    }
+    
     try {
       // Fetch papers where user is owner OR co-author
       const { data, error } = await supabase
         .from('research_papers')
         .select('*')
-        .or(`owner.eq.${user?.id || 'null'},co_author_ids.cs.{${user?.id || 'null'}}`)
+        .or(`owner.eq.${user.id},co_author_ids.cs.{${user.id}}`)
         .order('created_at', { ascending: false });
 
       console.log('Papers data:', data);

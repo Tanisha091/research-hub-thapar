@@ -151,6 +151,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_co_author_with_conditional_email: {
+        Args: {
+          co_author_row: Database["public"]["Tables"]["co_authors"]["Row"]
+        }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

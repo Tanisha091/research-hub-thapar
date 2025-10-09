@@ -87,7 +87,7 @@ const Index = () => {
                   value={filters.query}
                   onChange={(e) => setFilters({ ...filters, query: e.target.value })}
                   aria-label="Search papers"
-                  className="flex-1"
+                  className="max-w-md"
                 />
                 <FilterDrawer value={filters} onChange={setFilters} />
               </div>

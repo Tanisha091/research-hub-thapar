@@ -4,6 +4,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { ResearchCard, type ResearchPaper } from "@/components/research/ResearchCard";
 import { EnhancedSearchAndFilters, type EnhancedFilters } from "@/components/research/EnhancedSearchAndFilters";
+import { FilterDrawer } from "@/components/research/FilterDrawer";
+import { Input } from "@/components/ui/input";
 import { EnhancedUploadPaperForm } from "@/components/research/EnhancedUploadPaperForm";
 import { useAuth } from "@/contexts/AuthContext";
 import { useResearchPapers } from "@/hooks/useResearchPapers";
@@ -79,7 +81,16 @@ const Index = () => {
           <p className="text-muted-foreground mb-6">Browse research, upload new papers, and manage your work.</p>
           <Card className="hero-surface">
             <CardContent className="p-6">
-              <EnhancedSearchAndFilters value={filters} onChange={setFilters} />
+              <div className="flex gap-3 items-start">
+                <Input
+                  placeholder="Search papers, authors, keywords..."
+                  value={filters.query}
+                  onChange={(e) => setFilters({ ...filters, query: e.target.value })}
+                  aria-label="Search papers"
+                  className="flex-1"
+                />
+                <FilterDrawer value={filters} onChange={setFilters} />
+              </div>
             </CardContent>
           </Card>
         </section>

@@ -1,6 +1,7 @@
 import { Link, NavLink } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { UserProfileDropdown } from "@/components/layout/UserProfileDropdown";
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   `px-3 py-2 rounded-md text-sm font-medium transition-colors ${
@@ -8,7 +9,7 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   }`;
 
 const SiteHeader = () => {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -32,14 +33,7 @@ const SiteHeader = () => {
         </nav>
         <div className="flex items-center gap-2">
           {user ? (
-            <>
-              <span className="text-sm text-muted-foreground hidden md:inline">
-                {user.email}
-              </span>
-              <Button variant="ghost" onClick={signOut}>
-                Logout
-              </Button>
-            </>
+            <UserProfileDropdown />
           ) : (
             <>
               <Button asChild variant="ghost">

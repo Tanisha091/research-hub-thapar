@@ -87,18 +87,16 @@ const Index = () => {
                 {isAdmin ? "Manage all papers and generate reports" : isTeacher ? "Upload and manage your research papers" : "Browse research papers"}
               </p>
             </div>
-            {user && (
+            {user && (isTeacher || isAdmin) && (
               <div className="flex gap-2">
-                <Button variant="outline" onClick={() => navigate("/")} className="gap-2">
+                <Button variant="outline" onClick={() => setView("browse")} className="gap-2">
                   <Home className="h-4 w-4" />
                   Home
                 </Button>
-                {(isTeacher || isAdmin) && (
-                  <Button onClick={() => setView("upload")} className="gap-2">
-                    <Upload className="h-4 w-4" />
-                    Upload Paper
-                  </Button>
-                )}
+                <Button onClick={() => setView("upload")} className="gap-2">
+                  <Upload className="h-4 w-4" />
+                  Upload Paper
+                </Button>
                 {isAdmin && (
                   <Button variant="secondary" onClick={() => navigate("/admin")} className="gap-2">
                     <FileText className="h-4 w-4" />

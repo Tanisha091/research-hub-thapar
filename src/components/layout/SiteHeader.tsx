@@ -18,17 +18,8 @@ const SiteHeader = () => {
           <span className="text-xl">ThaparAcad</span>
         </Link>
         <nav className="hidden md:flex items-center gap-1">
-          <NavLink to={{ pathname: "/" }} state={{ tab: "browse" }} className={navLinkClass} end>
-            Browse Papers
-          </NavLink>
-          <NavLink to={{ pathname: "/" }} state={{ tab: "upload" }} className={navLinkClass}>
-            Upload Paper
-          </NavLink>
-          <NavLink to={{ pathname: "/" }} state={{ tab: "my" }} className={navLinkClass}>
-            My Papers
-          </NavLink>
-          <NavLink to="/admin" className={navLinkClass}>
-            Admin
+          <NavLink to="/" className={navLinkClass} end>
+            Research Portal
           </NavLink>
         </nav>
         <div className="flex items-center gap-2">

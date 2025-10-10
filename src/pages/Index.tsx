@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
-import { useLocation } from "react-router-dom";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { ResearchCard, type ResearchPaper } from "@/components/research/ResearchCard";
 import { EnhancedSearchAndFilters, type EnhancedFilters } from "@/components/research/EnhancedSearchAndFilters";
 import { FilterDrawer } from "@/components/research/FilterDrawer";
@@ -10,6 +10,8 @@ import { EnhancedUploadPaperForm } from "@/components/research/EnhancedUploadPap
 import { useAuth } from "@/contexts/AuthContext";
 import { useResearchPapers } from "@/hooks/useResearchPapers";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useUserRole } from "@/hooks/useUserRole";
+import { Home, Upload, FileText } from "lucide-react";
 
 const Index = () => {
   const [filters, setFilters] = useState<EnhancedFilters>({ 
@@ -23,16 +25,15 @@ const Index = () => {
     publishDateFrom: "",
     publishDateTo: ""
   });
-  const [tab, setTab] = useState<string>("browse");
-  const location = useLocation();
+  const [view, setView] = useState<"browse" | "upload" | "my">("browse");
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { papers, loading, createPaper } = useResearchPapers();
+  const { role, isAdmin, isTeacher } = useUserRole();
 
   useEffect(() => {
     document.title = "ThaparAcad Research Portal";
-    const t = (location.state as any)?.tab;
-    if (t) setTab(t);
-  }, [location.state]);
+  }, []);
 
   const filtered = useMemo(() => {
     const q = filters.query.toLowerCase();
@@ -77,8 +78,36 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <main className="container mx-auto py-10">
         <section className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Research Portal</h1>
-          <p className="text-muted-foreground mb-6">Browse research, upload new papers, and manage your work.</p>
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">
+                {isAdmin ? "Admin Dashboard" : isTeacher ? "Teacher Dashboard" : "Research Portal"}
+              </h1>
+              <p className="text-muted-foreground">
+                {isAdmin ? "Manage all papers and generate reports" : isTeacher ? "Upload and manage your research papers" : "Browse research papers"}
+              </p>
+            </div>
+            {user && (
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => navigate("/")} className="gap-2">
+                  <Home className="h-4 w-4" />
+                  Home
+                </Button>
+                {(isTeacher || isAdmin) && (
+                  <Button onClick={() => setView("upload")} className="gap-2">
+                    <Upload className="h-4 w-4" />
+                    Upload Paper
+                  </Button>
+                )}
+                {isAdmin && (
+                  <Button variant="secondary" onClick={() => navigate("/admin")} className="gap-2">
+                    <FileText className="h-4 w-4" />
+                    Generate Report
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
           <Card className="hero-surface">
             <CardContent className="p-6">
               <div className="flex gap-3 items-start">
@@ -94,33 +123,16 @@ const Index = () => {
             </CardContent>
           </Card>
         </section>
+
         <section>
-          <Tabs value={tab} onValueChange={setTab}>
-            <TabsList>
-              <TabsTrigger value="browse">Browse Papers</TabsTrigger>
-              <TabsTrigger value="upload">Upload Paper</TabsTrigger>
-              <TabsTrigger value="my">My Papers</TabsTrigger>
-            </TabsList>
-            <TabsContent value="browse" className="space-y-4 mt-4">
-              <p className="text-sm text-muted-foreground">Found {filtered.length} papers</p>
-              {loading ? (
-                <div className="space-y-4">
-                  {Array.from({ length: 3 }).map((_, i) => (
-                    <Skeleton key={i} className="h-32 w-full" />
-                  ))}
-                </div>
-              ) : filtered.length > 0 ? (
-                filtered.map((p) => (
-                  <ResearchCard key={p.id} paper={p} />
-                ))
-              ) : (
-                <p className="text-muted-foreground">No papers found matching your criteria.</p>
-              )}
-            </TabsContent>
-            <TabsContent value="upload" className="mt-4">
+          {view === "upload" ? (
+            <div className="space-y-4">
+              <Button variant="ghost" onClick={() => setView("browse")}>← Back to Papers</Button>
               <EnhancedUploadPaperForm onSubmit={createPaper} />
-            </TabsContent>
-            <TabsContent value="my" className="space-y-4 mt-4">
+            </div>
+          ) : view === "my" ? (
+            <div className="space-y-4">
+              <Button variant="ghost" onClick={() => setView("browse")}>← Back to All Papers</Button>
               {!user ? (
                 <p className="text-muted-foreground">Please log in to view your papers.</p>
               ) : loading ? (
@@ -134,8 +146,30 @@ const Index = () => {
               ) : (
                 myPapers.map((p) => <ResearchCard key={p.id} paper={p} />)
               )}
-            </TabsContent>
-          </Tabs>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground">Found {filtered.length} papers</p>
+                {user && (isTeacher || isAdmin) && (
+                  <Button variant="outline" onClick={() => setView("my")}>View My Papers</Button>
+                )}
+              </div>
+              {loading ? (
+                <div className="space-y-4">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <Skeleton key={i} className="h-32 w-full" />
+                  ))}
+                </div>
+              ) : filtered.length > 0 ? (
+                filtered.map((p) => (
+                  <ResearchCard key={p.id} paper={p} />
+                ))
+              ) : (
+                <p className="text-muted-foreground">No papers found matching your criteria.</p>
+              )}
+            </div>
+          )}
         </section>
         <script
           type="application/ld+json"

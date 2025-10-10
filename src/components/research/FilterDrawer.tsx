@@ -96,15 +96,6 @@ export const FilterDrawer = ({ value, onChange }: FilterDrawerProps) => {
           </div>
 
           <div>
-            <Label>Additional Collaborator</Label>
-            <Input
-              placeholder="External collaborator name"
-              value={value.collaborator}
-              onChange={(e) => onChange({ ...value, collaborator: e.target.value })}
-            />
-          </div>
-
-          <div>
             <Label className="text-sm font-medium">Upload Date Range</Label>
             <div className="grid grid-cols-2 gap-2 mt-1">
               <Input

@@ -89,7 +89,14 @@ const Index = () => {
             </div>
             {user && (isTeacher || isAdmin) && (
               <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setView("browse")} className="gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setView("browse");
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }} 
+                  className="gap-2"
+                >
                   <Home className="h-4 w-4" />
                   Home
                 </Button>

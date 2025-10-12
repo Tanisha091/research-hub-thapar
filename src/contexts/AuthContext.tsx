@@ -8,6 +8,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signUp: (email: string, password: string, fullName?: string) => Promise<{ error: any }>;
+  verifySignUpOtp: (email: string, token: string, password: string, fullName?: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   sendPasswordResetOtp: (email: string) => Promise<{ error: any }>;
@@ -58,13 +59,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   }, []);
 
   const signUp = async (email: string, password: string, fullName?: string) => {
-    const redirectUrl = `${window.location.origin}/`;
-    
-    const { error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signInWithOtp({
       email,
-      password,
       options: {
-        emailRedirectTo: redirectUrl,
+        shouldCreateUser: true,
         data: fullName ? { full_name: fullName } : undefined
       }
     });
@@ -78,11 +76,48 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     } else {
       toast({
         title: "Check your email",
-        description: "We've sent you a confirmation link to complete your registration."
+        description: "We've sent you a verification code to complete your registration."
       });
     }
     
     return { error };
+  };
+
+  const verifySignUpOtp = async (email: string, token: string, password: string, fullName?: string) => {
+    const { error: verifyError } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: 'email'
+    });
+    
+    if (verifyError) {
+      toast({
+        title: "Invalid OTP",
+        description: verifyError.message,
+        variant: "destructive"
+      });
+      return { error: verifyError };
+    }
+
+    const { error: updateError } = await supabase.auth.updateUser({
+      password,
+      data: fullName ? { full_name: fullName } : undefined
+    });
+    
+    if (updateError) {
+      toast({
+        title: "Failed to complete registration",
+        description: updateError.message,
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "Registration successful",
+        description: "Welcome to ThaparAcad!"
+      });
+    }
+    
+    return { error: updateError };
   };
 
   const signIn = async (email: string, password: string) => {
@@ -188,6 +223,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     session,
     loading,
     signUp,
+    verifySignUpOtp,
     signIn,
     signOut,
     sendPasswordResetOtp,

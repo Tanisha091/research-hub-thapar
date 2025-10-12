@@ -10,6 +10,8 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName?: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
+  sendPasswordResetOtp: (email: string) => Promise<{ error: any }>;
+  verifyOtpAndResetPassword: (email: string, token: string, newPassword: string) => Promise<{ error: any }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -121,13 +123,75 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  const sendPasswordResetOtp = async (email: string) => {
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        shouldCreateUser: false,
+      }
+    });
+    
+    if (error) {
+      toast({
+        title: "Failed to send OTP",
+        description: error.message,
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "OTP sent",
+        description: "Please check your email for the verification code."
+      });
+    }
+    
+    return { error };
+  };
+
+  const verifyOtpAndResetPassword = async (email: string, token: string, newPassword: string) => {
+    const { error: verifyError } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: 'email'
+    });
+    
+    if (verifyError) {
+      toast({
+        title: "Invalid OTP",
+        description: verifyError.message,
+        variant: "destructive"
+      });
+      return { error: verifyError };
+    }
+
+    const { error: updateError } = await supabase.auth.updateUser({
+      password: newPassword
+    });
+    
+    if (updateError) {
+      toast({
+        title: "Failed to reset password",
+        description: updateError.message,
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "Password reset successful",
+        description: "You can now login with your new password."
+      });
+    }
+    
+    return { error: updateError };
+  };
+
   const value = {
     user,
     session,
     loading,
     signUp,
     signIn,
-    signOut
+    signOut,
+    sendPasswordResetOtp,
+    verifyOtpAndResetPassword
   };
 
   return (

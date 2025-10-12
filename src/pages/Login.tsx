@@ -60,9 +60,14 @@ const Login = () => {
           {isLoading ? "Signing in..." : "Login"}
         </Button>
       </form>
-      <p className="text-sm text-muted-foreground mt-4">
-        No account? <Link to="/register" className="text-primary">Register</Link>
-      </p>
+      <div className="mt-4 space-y-2">
+        <p className="text-sm text-muted-foreground">
+          No account? <Link to="/register" className="text-primary">Register</Link>
+        </p>
+        <p className="text-sm text-muted-foreground">
+          Forgot your password? <Link to="/forgot-password" className="text-primary">Reset it</Link>
+        </p>
+      </div>
     </main>
   );
 };

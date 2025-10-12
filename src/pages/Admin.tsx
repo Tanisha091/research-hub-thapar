@@ -86,25 +86,25 @@ const Admin = () => {
           <CardHeader>
             <CardTitle>Total Papers</CardTitle>
           </CardHeader>
-          <CardContent className="text-3xl font-bold">{stats.total}</CardContent>
+          <CardContent className="text-3xl font-bold text-primary">{stats.total}</CardContent>
         </Card>
         <Card>
           <CardHeader>
             <CardTitle>Published</CardTitle>
           </CardHeader>
-          <CardContent className="text-3xl font-bold text-green-600">{stats.published}</CardContent>
+          <CardContent className="text-3xl font-bold" style={{ color: 'hsl(142 76% 36%)' }}>{stats.published}</CardContent>
         </Card>
         <Card>
           <CardHeader>
             <CardTitle>In Review</CardTitle>
           </CardHeader>
-          <CardContent className="text-3xl font-bold text-yellow-600">{stats.inReview}</CardContent>
+          <CardContent className="text-3xl font-bold text-accent">{stats.inReview}</CardContent>
         </Card>
         <Card>
           <CardHeader>
             <CardTitle>Draft</CardTitle>
           </CardHeader>
-          <CardContent className="text-3xl font-bold text-gray-600">{stats.draft}</CardContent>
+          <CardContent className="text-3xl font-bold text-muted-foreground">{stats.draft}</CardContent>
         </Card>
       </section>
     </main>

@@ -14,34 +14,16 @@ export interface CoAuthor {
 export const useCoAuthors = () => {
   const [coAuthors, setCoAuthors] = useState<CoAuthor[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
-
-  const checkAdminStatus = async () => {
-    if (!user) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .eq('role', 'admin')
-        .single();
-      
-      setIsAdmin(!!data && !error);
-    } catch (error) {
-      setIsAdmin(false);
-    }
-  };
 
   const fetchCoAuthors = async () => {
     console.log('Fetching co-authors...');
     try {
+      // Use the secure view that enforces email masking at the database level
       const { data, error } = await supabase
-        .from('co_authors')
+        .from('co_authors_safe')
         .select('*')
-        .eq('is_active', true)
         .order('full_name');
 
       console.log('Co-authors data:', data);
@@ -49,13 +31,8 @@ export const useCoAuthors = () => {
 
       if (error) throw error;
       
-      // For non-admin users, mask the email addresses
-      const processedData = data?.map(coAuthor => ({
-        ...coAuthor,
-        email: isAdmin ? coAuthor.email : '[Contact admin for email]'
-      })) || [];
-      
-      setCoAuthors(processedData);
+      // Email masking is now handled by the database view
+      setCoAuthors(data || []);
     } catch (error: any) {
       console.error('Co-authors fetch error:', error);
       toast({
@@ -69,19 +46,12 @@ export const useCoAuthors = () => {
   };
 
   useEffect(() => {
-    if (user) {
-      checkAdminStatus();
-    }
-  }, [user]);
-
-  useEffect(() => {
     fetchCoAuthors();
-  }, [isAdmin]);
+  }, [user]);
 
   return {
     coAuthors,
     loading,
-    isAdmin,
     refreshCoAuthors: fetchCoAuthors
   };
 };

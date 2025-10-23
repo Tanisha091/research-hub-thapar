@@ -148,7 +148,36 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      co_authors_safe: {
+        Row: {
+          created_at: string | null
+          department: Database["public"]["Enums"]["department_type"] | null
+          email: string | null
+          full_name: string | null
+          id: string | null
+          is_active: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          department?: Database["public"]["Enums"]["department_type"] | null
+          email?: never
+          full_name?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          department?: Database["public"]["Enums"]["department_type"] | null
+          email?: never
+          full_name?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_co_author_with_conditional_email: {

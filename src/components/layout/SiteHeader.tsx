@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { UserProfileDropdown } from "@/components/layout/UserProfileDropdown";
 import { useUserRole } from "@/hooks/useUserRole";
+import { Shield, GraduationCap } from "lucide-react";
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   `px-3 py-2 rounded-md text-sm font-medium transition-colors ${
@@ -11,7 +12,7 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 
 const SiteHeader = () => {
   const { user } = useAuth();
-  const { isAdmin } = useUserRole();
+  const { isAdmin, isTeacher } = useUserRole();
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -23,9 +24,20 @@ const SiteHeader = () => {
           <NavLink to="/" className={navLinkClass} end>
             Research Portal
           </NavLink>
+          {(isTeacher || isAdmin) && user && (
+            <NavLink to="/teacher" className={navLinkClass}>
+              <span className="flex items-center gap-1">
+                <GraduationCap className="h-4 w-4" />
+                Teacher Dashboard
+              </span>
+            </NavLink>
+          )}
           {isAdmin && (
             <NavLink to="/admin" className={navLinkClass}>
-              Admin Portal
+              <span className="flex items-center gap-1">
+                <Shield className="h-4 w-4" />
+                Admin Portal
+              </span>
             </NavLink>
           )}
         </nav>
@@ -39,6 +51,12 @@ const SiteHeader = () => {
               </Button>
               <Button asChild variant="hero">
                 <Link to="/register">Register</Link>
+              </Button>
+              <Button asChild variant="outline" className="gap-1">
+                <Link to="/admin-login">
+                  <Shield className="h-4 w-4" />
+                  Admin
+                </Link>
               </Button>
             </>
           )}

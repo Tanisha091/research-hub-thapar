@@ -20,6 +20,8 @@ export type ResearchPaper = {
     full_name: string;
     department: string;
   }>;
+  doi?: string;
+  abstract?: string;
 };
 
 type Props = {

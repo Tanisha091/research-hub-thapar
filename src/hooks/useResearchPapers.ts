@@ -20,6 +20,8 @@ export interface DatabasePaper {
   co_author_ids?: string[];
   created_at: string;
   updated_at: string;
+  doi?: string;
+  abstract?: string;
   co_authors?: Array<{
     id: string;
     full_name: string;
@@ -46,7 +48,9 @@ export const useResearchPapers = () => {
     owner: dbPaper.owner,
     department: dbPaper.department,
     coAuthorIds: dbPaper.co_author_ids,
-    coAuthors: dbPaper.co_authors
+    coAuthors: dbPaper.co_authors,
+    doi: dbPaper.doi,
+    abstract: dbPaper.abstract
   });
 
   const fetchPapers = async () => {

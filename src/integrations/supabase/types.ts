@@ -44,12 +44,31 @@ export type Database = {
         }
         Relationships: []
       }
+      departments: {
+        Row: {
+          id: string
+          name: string
+        }
+        Insert: {
+          id: string
+          name: string
+        }
+        Update: {
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       research_papers: {
         Row: {
+          abstract: string | null
+          authors: string[]
           co_author_ids: string[] | null
           collaborators: string[]
           created_at: string
           department: Database["public"]["Enums"]["department_type"] | null
+          doi: string | null
+          file_url: string | null
           id: string
           issue_date: string
           keywords: string[]
@@ -57,33 +76,43 @@ export type Database = {
           paper_number: string
           pdf_path: string | null
           pdf_url: string | null
+          publication_year: number | null
           publish_date: string | null
           status: Database["public"]["Enums"]["paper_status_type"]
           title: string
           updated_at: string
         }
         Insert: {
+          abstract?: string | null
+          authors?: string[]
           co_author_ids?: string[] | null
           collaborators?: string[]
           created_at?: string
           department?: Database["public"]["Enums"]["department_type"] | null
+          doi?: string | null
+          file_url?: string | null
           id?: string
-          issue_date: string
+          issue_date?: string
           keywords?: string[]
           owner: string
-          paper_number: string
+          paper_number?: string
           pdf_path?: string | null
           pdf_url?: string | null
+          publication_year?: number | null
           publish_date?: string | null
           status?: Database["public"]["Enums"]["paper_status_type"]
           title: string
           updated_at?: string
         }
         Update: {
+          abstract?: string | null
+          authors?: string[]
           co_author_ids?: string[] | null
           collaborators?: string[]
           created_at?: string
           department?: Database["public"]["Enums"]["department_type"] | null
+          doi?: string | null
+          file_url?: string | null
           id?: string
           issue_date?: string
           keywords?: string[]
@@ -91,10 +120,26 @@ export type Database = {
           paper_number?: string
           pdf_path?: string | null
           pdf_url?: string | null
+          publication_year?: number | null
           publish_date?: string | null
           status?: Database["public"]["Enums"]["paper_status_type"]
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      roles: {
+        Row: {
+          id: string
+          name: string
+        }
+        Insert: {
+          id: string
+          name: string
+        }
+        Update: {
+          id?: string
+          name?: string
         }
         Relationships: []
       }
@@ -119,32 +164,52 @@ export type Database = {
       users: {
         Row: {
           auth_user_id: string | null
+          avatar_url: string | null
+          contact_info: string | null
           created_at: string | null
           department: Database["public"]["Enums"]["department_type"] | null
           email: string
           full_name: string
           id: string
+          password_hash: string
+          role: string | null
           updated_at: string | null
         }
         Insert: {
           auth_user_id?: string | null
+          avatar_url?: string | null
+          contact_info?: string | null
           created_at?: string | null
           department?: Database["public"]["Enums"]["department_type"] | null
           email: string
           full_name: string
           id?: string
+          password_hash?: string
+          role?: string | null
           updated_at?: string | null
         }
         Update: {
           auth_user_id?: string | null
+          avatar_url?: string | null
+          contact_info?: string | null
           created_at?: string | null
           department?: Database["public"]["Enums"]["department_type"] | null
           email?: string
           full_name?: string
           id?: string
+          password_hash?: string
+          role?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "users_role_fkey"
+            columns: ["role"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -206,6 +271,7 @@ export type Database = {
         | "ees"
         | "ced"
       paper_status_type: "published" | "in-review" | "draft"
+      research_status_type: "published" | "under_review"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -345,6 +411,7 @@ export const Constants = {
         "ced",
       ],
       paper_status_type: ["published", "in-review", "draft"],
+      research_status_type: ["published", "under_review"],
     },
   },
 } as const

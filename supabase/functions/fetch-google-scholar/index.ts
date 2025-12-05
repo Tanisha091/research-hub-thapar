@@ -7,10 +7,11 @@ const corsHeaders = {
 
 interface ScholarPublication {
   title: string;
-  authors: string[];
+  authors: string;
   year: string;
   citations: number;
   link?: string;
+  publication?: string;
 }
 
 serve(async (req) => {
@@ -29,68 +30,82 @@ serve(async (req) => {
       );
     }
 
-    // Note: Google Scholar doesn't have an official API
-    // This is a simplified implementation that fetches the profile page
-    // In production, you would need to use a proper scraping service or API
+    const serpApiKey = Deno.env.get("SERPAPI_API_KEY");
     
-    const scholarUrl = `https://scholar.google.com/citations?user=${scholarId}&hl=en`;
-    
-    console.log(`Fetching Google Scholar profile: ${scholarUrl}`);
+    if (!serpApiKey) {
+      console.error("SERPAPI_API_KEY not configured");
+      return new Response(
+        JSON.stringify({ error: "SerpAPI key not configured" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
-    // Fetch the Google Scholar page
-    const response = await fetch(scholarUrl, {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.5",
-      },
-    });
+    console.log(`Fetching Google Scholar profile for ID: ${scholarId}`);
+
+    // Use SerpAPI to fetch Google Scholar author data
+    const serpApiUrl = new URL("https://serpapi.com/search.json");
+    serpApiUrl.searchParams.set("engine", "google_scholar_author");
+    serpApiUrl.searchParams.set("author_id", scholarId);
+    serpApiUrl.searchParams.set("api_key", serpApiKey);
+    serpApiUrl.searchParams.set("num", "100"); // Get up to 100 publications
+
+    const response = await fetch(serpApiUrl.toString());
 
     if (!response.ok) {
-      console.error(`Failed to fetch Scholar profile: ${response.status}`);
+      const errorText = await response.text();
+      console.error(`SerpAPI error: ${response.status} - ${errorText}`);
       return new Response(
         JSON.stringify({ 
           error: "Failed to fetch Google Scholar profile",
-          message: "The profile may not exist or Google Scholar blocked the request"
+          message: "The profile may not exist or there was an API error"
         }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const html = await response.text();
+    const data = await response.json();
 
-    // Parse publications from the HTML
-    // This is a basic regex-based parser - in production use a proper HTML parser
-    const publications: ScholarPublication[] = [];
-    
-    // Look for publication entries in the HTML
-    const titleRegex = /<a[^>]*class="gsc_a_at"[^>]*>([^<]+)<\/a>/g;
-    const yearRegex = /<span[^>]*class="gs_oph"[^>]*>[^<]*(\d{4})[^<]*<\/span>/g;
-    
-    let titleMatch;
-    const titles: string[] = [];
-    while ((titleMatch = titleRegex.exec(html)) !== null) {
-      titles.push(titleMatch[1].trim());
+    if (data.error) {
+      console.error(`SerpAPI returned error: ${data.error}`);
+      return new Response(
+        JSON.stringify({ 
+          error: "Failed to fetch Google Scholar profile",
+          message: data.error
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    // Create publication objects
-    titles.slice(0, 20).forEach((title, index) => {
-      publications.push({
-        title: title,
-        authors: [],
-        year: new Date().getFullYear().toString(),
-        citations: 0,
-      });
-    });
+    // Extract author information
+    const author = data.author || {};
+    const articles = data.articles || [];
 
-    console.log(`Found ${publications.length} publications`);
+    // Transform articles to our publication format
+    const publications: ScholarPublication[] = articles.map((article: any) => ({
+      title: article.title || "Untitled",
+      authors: article.authors || "",
+      year: article.year || "",
+      citations: article.cited_by?.value || 0,
+      link: article.link || null,
+      publication: article.publication || "",
+    }));
+
+    console.log(`Found ${publications.length} publications for ${author.name || scholarId}`);
 
     return new Response(
       JSON.stringify({ 
         success: true,
         scholarId,
-        profileUrl: scholarUrl,
+        author: {
+          name: author.name || null,
+          affiliations: author.affiliations || null,
+          email: author.email || null,
+          thumbnail: author.thumbnail || null,
+          citedBy: data.cited_by?.table || null,
+        },
+        profileUrl: `https://scholar.google.com/citations?user=${scholarId}`,
         publications,
+        totalPublications: publications.length,
         message: publications.length > 0 
           ? `Found ${publications.length} publications` 
           : "No publications found. The profile may be private or the ID may be incorrect."

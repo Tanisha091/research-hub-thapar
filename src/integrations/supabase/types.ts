@@ -170,6 +170,7 @@ export type Database = {
           department: Database["public"]["Enums"]["department_type"] | null
           email: string
           full_name: string
+          google_scholar_id: string | null
           id: string
           password_hash: string
           role: string | null
@@ -183,6 +184,7 @@ export type Database = {
           department?: Database["public"]["Enums"]["department_type"] | null
           email: string
           full_name: string
+          google_scholar_id?: string | null
           id?: string
           password_hash?: string
           role?: string | null
@@ -196,6 +198,7 @@ export type Database = {
           department?: Database["public"]["Enums"]["department_type"] | null
           email?: string
           full_name?: string
+          google_scholar_id?: string | null
           id?: string
           password_hash?: string
           role?: string | null

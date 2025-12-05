@@ -3,14 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ResearchCard, type ResearchPaper } from "@/components/research/ResearchCard";
+import { ResearchCard } from "@/components/research/ResearchCard";
 import { EnhancedUploadPaperForm } from "@/components/research/EnhancedUploadPaperForm";
+import { GoogleScholarImport } from "@/components/research/GoogleScholarImport";
 import { useAuth } from "@/contexts/AuthContext";
 import { useResearchPapers } from "@/hooks/useResearchPapers";
 import { useUserRole } from "@/hooks/useUserRole";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { 
   Upload, 
   FileText, 
@@ -19,19 +19,14 @@ import {
   Search,
   RefreshCw
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 
 const TeacherDashboard = () => {
   const [activeTab, setActiveTab] = useState("my-papers");
   const [searchQuery, setSearchQuery] = useState("");
-  const [scholarId, setScholarId] = useState("");
-  const [isFetchingScholar, setIsFetchingScholar] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
   const { papers, loading, createPaper, refreshPapers } = useResearchPapers();
   const { isTeacher, isAdmin, loading: roleLoading } = useUserRole();
-  const { toast } = useToast();
 
   useEffect(() => {
     document.title = "Teacher Dashboard | ThaparAcad";
@@ -69,46 +64,8 @@ const TeacherDashboard = () => {
     draft: myPapers.filter(p => p.status === 'draft').length,
   }), [myPapers]);
 
-  const handleFetchScholar = async () => {
-    if (!scholarId.trim()) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Please enter a Google Scholar ID",
-      });
-      return;
-    }
-
-    setIsFetchingScholar(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('fetch-google-scholar', {
-        body: { scholarId: scholarId.trim() }
-      });
-
-      if (error) throw error;
-
-      if (data?.publications && data.publications.length > 0) {
-        toast({
-          title: "Success",
-          description: `Found ${data.publications.length} publications from Google Scholar`,
-        });
-        // Refresh papers to show any newly imported ones
-        refreshPapers();
-      } else {
-        toast({
-          title: "No Results",
-          description: "No publications found for this Scholar ID",
-        });
-      }
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message || "Failed to fetch from Google Scholar",
-      });
-    } finally {
-      setIsFetchingScholar(false);
-    }
+  const handleScholarImport = () => {
+    refreshPapers();
   };
 
   if (roleLoading || loading) {
@@ -240,50 +197,7 @@ const TeacherDashboard = () => {
         </TabsContent>
 
         <TabsContent value="scholar">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <GraduationCap className="h-5 w-5" />
-                Import from Google Scholar
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-muted-foreground">
-                Enter your Google Scholar ID to fetch your publications. The ID can be found in your Google Scholar profile URL.
-              </p>
-              <div className="flex gap-4 items-end">
-                <div className="flex-1 space-y-2">
-                  <Label htmlFor="scholar-id">Google Scholar ID</Label>
-                  <Input
-                    id="scholar-id"
-                    placeholder="e.g., ABC123xyz"
-                    value={scholarId}
-                    onChange={(e) => setScholarId(e.target.value)}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Find it in your Scholar profile URL: scholar.google.com/citations?user=<strong>YOUR_ID</strong>
-                  </p>
-                </div>
-                <Button 
-                  onClick={handleFetchScholar} 
-                  disabled={isFetchingScholar}
-                  className="gap-2"
-                >
-                  {isFetchingScholar ? (
-                    <>
-                      <RefreshCw className="h-4 w-4 animate-spin" />
-                      Fetching...
-                    </>
-                  ) : (
-                    <>
-                      <Search className="h-4 w-4" />
-                      Fetch Publications
-                    </>
-                  )}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <GoogleScholarImport onImport={handleScholarImport} />
         </TabsContent>
       </Tabs>
     </main>
